@@ -7,6 +7,6 @@ const router = express.Router();
 
 router.get('/info', AuthRequestMiddlewares.checkAuth, InfoController.info);
 
-router.use('/user', userRoutes)
+router.use('/user', AuthRequestMiddlewares.checkAuth, userRoutes)
 
 module.exports = router;

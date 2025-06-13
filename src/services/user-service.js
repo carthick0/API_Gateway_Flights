@@ -70,4 +70,55 @@ async function isAuthenticated(token) {
     }
 }
 
-module.exports = { create, signin, isAuthenticated }
+
+async function addRoleToUser(data) {
+    try {
+        const user = await userRepository.getById(data.id);
+        if (!user) {
+            throw new AppError(
+                'No user found for the if given',
+                StatusCodes.BAD_REQUEST, ['User does not exist with the given id']
+            );
+        }
+
+        const role = await roleRepository.getByRole(data.role);
+        if (!role) {
+            throw new AppError(
+                'No user found for the role given',
+                StatusCodes.BAD_REQUEST, ['User does not exist with the given role']
+            );
+        }
+        await user.addRole(role);
+        return user;
+    } catch (error) {
+        if (error instanceof AppError) throw error;
+        console.log(error);
+        throw new AppError('Something went wrong', StatusCodes.INTERNAL_SERVER_ERROR, [error.message])
+    }
+}
+
+
+async function isAdmin(id) {
+    try {
+        const user = await userRepository.getById(id);
+        if (!user) {
+            throw new AppError(
+                'No user found for the if given',
+                StatusCodes.BAD_REQUEST, ['User does not exist with the given id']
+            );
+        }
+
+        const adminRole = await roleRepository.getByRole('Admin');
+        if (!adminRole) {
+            throw new AppError(
+                'No user found for the role given',
+                StatusCodes.BAD_REQUEST, ['User does not exist with the given role']
+            );
+        }
+
+        return user.hasRole(adminRole)
+    } catch (error) {
+
+    }
+}
+module.exports = { create, signin, isAuthenticated, addRoleToUser, isAdmin }

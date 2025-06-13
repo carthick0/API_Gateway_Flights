@@ -72,7 +72,8 @@ class CrudRepository {
             }
             return response;
         } catch (error) {
-            Logger.error("Something went wrong in the crud repo : getById");
+            Logger.error(`Something went wrong in the crud repo : getById for ID = ${data}`, error);
+
             throw error;
         }
     }
