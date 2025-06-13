@@ -1,24 +1,48 @@
 const { StatusCodes } = require("http-status-codes");
 const { ErrorResponse } = require("../utils/common");
 const AppError = require("../utils/errors/app-error");
+const { UserService } = require("../services");
+
 
 function validateAuthRequest(req, res, next) {
+    const errors = [];
+
     if (!req.body.email) {
-        ErrorResponse.message = 'Something went wrong while authenticating user ';
-        ErrorResponse.error = new AppError(['Email not found in the incoming request in the correct form']);
-
-        return res.status(StatusCodes.BAD_REQUEST).json(ErrorResponse)
+        errors.push('Email not found in the incoming request or not in correct form');
     }
-    next();
+
     if (!req.body.password) {
-        ErrorResponse.message = 'Something went wrong while authenticating user ';
-        ErrorResponse.error = new AppError(['Password not found in the incoming request in the correct form']);
-
-        return res.status(StatusCodes.BAD_REQUEST).json(ErrorResponse)
+        errors.push('Password not found in the incoming request or not in correct form');
     }
+
+    if (errors.length > 0) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+            success: false,
+            message: 'Invalid authentication request',
+            data: {},
+            error: errors
+        });
+    }
+
     next();
 }
+async function checkAuth(req, res, next) {
+    try {
+        const userId = await UserService.isAuthenticated(req.headers['x-access-token']);
+        req.user = userId;
+        next();
+    } catch (error) {
+        return res.status(error.statusCode || StatusCodes.UNAUTHORIZED).json({
+            success: false,
+            message: error.message || "User not authenticated",
+            data: {},
+            error: error.explanation || [error.message || "Unauthorized access"]
+        });
+    }
+}
+
 
 module.exports = {
-    validateAuthRequest
+    validateAuthRequest,
+    checkAuth
 }

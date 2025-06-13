@@ -7,34 +7,48 @@ async function create(req, res) {
         const user = await UserService.create({
             email: req.body.email,
             password: req.body.password
-        })
+        });
 
-        SuccessResponse.data = user;
-        return res.status(StatusCodes.CREATED).json(SuccessResponse)
+        return res.status(StatusCodes.CREATED).json({
+            success: true,
+            message: "User created successfully",
+            data: user,
+            error: {}
+        });
     } catch (error) {
-        ErrorResponse.error = error
-        ErrorResponse.message = 'Something went wrong while creating user'
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR)
-            .json(ErrorResponse)
+        return res.status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: error.message || "Something went wrong while creating user",
+            data: {},
+            error: error.explanation || [error.message]
+        });
     }
 }
 
 async function signin(req, res) {
     try {
-        const user = await UserService.signin({
+        const token = await UserService.signin({
             email: req.body.email,
             password: req.body.password
         });
-        SuccessResponse.data = user;
-        return res.status(StatusCodes.OK).json(SuccessResponse)
+
+        return res.status(StatusCodes.OK).json({
+            success: true,
+            message: "User logged in successfully",
+            data: { token },
+            error: {}
+        });
     } catch (error) {
-        ErrorResponse.error = error
-        ErrorResponse.message = 'Something went wrong while logging user'
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR)
-            .json(ErrorResponse)
+        return res.status(error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: error.message || "Something went wrong while logging user",
+            data: {},
+            error: error.explanation || [error.message]
+        });
     }
 }
+
 module.exports = {
     create,
     signin
-}
+};
